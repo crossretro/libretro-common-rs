@@ -1,1 +1,3 @@
 /target
+/static/*.wasm
+/static/*.js

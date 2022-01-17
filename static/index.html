@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+<body>
+  <script type="module">
+    import init from "./libretro-common-rs.js";
+    const wasm = await init()
+    console.log(wasm)
+    window.test = wasm
+  </script>
+  </body>
+</html>
