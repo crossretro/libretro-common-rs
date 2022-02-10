@@ -1,23 +1,34 @@
 extern crate bindgen;
 use std::path::PathBuf;
+use std::env;
+
+const EM_OS: &str = "emscripten";
 
 fn main() {
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed=wrapper.h");
-    #[cfg(target_arch = "wasm32")] 
-    {
+
+		// Grab this value because #[cfg(all(target_arch = "wasm32", target_os = "emscripten"))] does not work in build.rs
+    // because it assumes that the target is the default OS target
+    // when you specify wasm32-unknown-emscripten.
+		let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap().to_string();
+    if target_os == EM_OS {
+      // Export as JS file as ES6 Module by adding emscripten flag
       println!("cargo:rustc-link-arg=-sEXPORT_ES6=1");
       println!("cargo:rustc-link-arg=-sMODULARIZE=1");
     }
+  
     
     // Use the `cc` crate to build a C file and statically link it.
-    cc::Build::new()
-    .include("libretro-common/include")
-    .file("libretro-common/audio/audio_mix.c")
+    let mut builder = cc::Build::new();
+		builder.include("libretro-common/include")
+		.file("libretro-common/audio/audio_mix.c")
     .file("libretro-common/audio/audio_mixer.c")
-    .file("libretro-common/audio/dsp_filter.c")
-    .archiver("emar")
-    .compile("libretro_common");
+    .file("libretro-common/audio/dsp_filter.c");
+		if target_os == EM_OS {	
+			builder.archiver("emar");
+		}
+    builder.compile("libretro_common");
     
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
@@ -27,7 +38,7 @@ fn main() {
         // bindings for.
         .header("wrapper.h")
         .clang_arg("-I./libretro-common/include")
-        .clang_arg("-fvisibility=default")
+        // .clang_arg("-fvisibility=default")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
