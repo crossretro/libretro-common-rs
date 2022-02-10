@@ -38,7 +38,7 @@ fn main() {
         // bindings for.
         .header("wrapper.h")
         .clang_arg("-I./libretro-common/include")
-        // .clang_arg("-fvisibility=default")
+        .clang_arg("-fvisibility=default")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
